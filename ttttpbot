@@ -1,0 +1,55 @@
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+
+# توکن ربات خود را اینجا قرار دهید
+TOKEN = '7734527386:AAF-mAAfpOPYfl0ItU-BzwW5kZ3lf0Oaa30'
+
+# لینک‌های تصاویر بازیکنان
+players_photos = {
+    "رونالدو": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Cristiano_Ronaldo_20120609.jpg",  # لینک عکس رونالدو
+    "مسی": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Lionel-Messi-Argentina-2022-FIFA-World-Cup_%28cropped%29.jpg/330px-Lionel-Messi-Argentina-2022-FIFA-World-Cup_%28cropped%29.jpg",  # لینک عکس مسی
+    "بکهام": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Beckswimbledon.jpg/800px-Beckswimbledon.jpg",  # لینک عکس بکهام
+    "زیدان": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Zinedine_Zidane_by_Tasnim_03.jpg/330px-Zinedine_Zidane_by_Tasnim_03.jpg",  # لینک عکس زیدان
+    "رونالدینیو": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Ronaldinho_in_2019.jpg/330px-Ronaldinho_in_2019.jpg"  # لینک عکس رونالدینیو
+}
+
+# نمایش منو انتخاب بازیکنان
+def start(update: Update, context: CallbackContext) -> None:
+    chat_id = update.message.chat_id
+    keyboard = [
+        [InlineKeyboardButton("رونالدو", callback_data='رونالدو')],
+        [InlineKeyboardButton("مسی", callback_data='مسی')],
+        [InlineKeyboardButton("بکهام", callback_data='بکهام')],
+        [InlineKeyboardButton("زیدان", callback_data='زیدان')],
+        [InlineKeyboardButton("رونالدینیو", callback_data='رونالدینیو')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('لطفاً یکی از بازیکنان را انتخاب کنید:', reply_markup=reply_markup)
+
+# ارسال عکس مربوط به بازیکن
+def button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    query.answer()
+    player_name = query.data
+    photo_url = players_photos.get(player_name, None)
+    
+    if photo_url:
+        context.bot.send_photo(chat_id=query.message.chat_id, photo=photo_url)
+    else:
+        query.edit_message_text(text="تصویری برای این بازیکن پیدا نشد.")
+
+# تابع اصلی برای راه‌اندازی ربات
+def main() -> None:
+    updater = Updater(TOKEN)
+    dispatcher = updater.dispatcher
+
+    # اضافه کردن هندلرها
+    dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CallbackQueryHandler(button))
+
+    # شروع ربات
+    updater.start_polling()
+    updater.idle()
+
+if name == '__main__':
+    main()
